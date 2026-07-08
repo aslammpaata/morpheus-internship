@@ -2,91 +2,99 @@
 
 **Status:** Living document (audit in progress)
 **Started:** 2026-07-08
-**Auditor:** MorpheusAI intern (firsthand run) + repo review
+**Auditor:** MorpheusAI intern (firsthand run) + repo & official-docs review
 **Target:** [MorpheusAIs/Morpheus-Lumerin-Node](https://github.com/MorpheusAIs/Morpheus-Lumerin-Node), release v7.3.0 (2026-06-24)
+**Docs reviewed:** [nodedocs.mor.org](https://nodedocs.mor.org) — quickstart-consumer, reference/api-auth
 
 ---
 
 ## Purpose
 
 Catalog every friction point on the **zero-to-first-inference** path on Windows, so we can fix
-discovery/docs, and automate the painful developer flow. Each entry is a candidate for one of:
-a documentation PR, a GitHub issue, or a feature of `morpheus-doctor`.
+discovery/docs and automate the painful developer flow. Each entry is a candidate for a
+documentation PR, a GitHub issue, or a feature of `morpheus-doctor`.
 
 ---
 
-## The two paths
+## The paths (updated with canonical docs)
 
-| Path | Audience | Verdict |
-|------|----------|---------|
-| **Desktop app** (`win-x64-morpheus-app-7.3.0.exe`) | Beginners / most users | Bundles wallet + chat + built-in router. Staking & sessions are smooth. **Already good.** |
-| **Router + CLI** | Developers / power users | Greater session-management control, but a painful multi-step manual chain. **This is where the automation value is.** |
+| Path | How you actually run it (canonical) | Audience | Verdict |
+|------|-------------------------------------|----------|---------|
+| **Desktop app** (`win-x64-morpheus-app`) | Download `.exe`, run, create wallet in-app, Chat → Open Session (stake ≥5 MOR) | Beginners | Smooth. **Already good.** |
+| **Bundled launcher** `mor-launch.exe` | Double-click `mor-launch.exe` — starts proxy-router + CLI + UI together. `mor-launch local` also starts a **free bundled llama.cpp model** | Beginners & devs on Windows | **The golden path most people miss (F10).** |
+| **Hand-rolled router + CLI** (`systemctl`, `everclaw`) | What the auditor actually did — Linux/systemd service + bespoke wallet script + raw curl | Advanced / non-standard | Painful; **non-canonical** — see F7/F8/F10 |
 
 ---
 
 ## Friction log
 
-| # | Step | Friction | Sev | Owner |
-|---|------|----------|-----|-------|
-| F1 | Discovering the path | README/getting-started reads "dev / build from source"; the recommended desktop `.exe` isn't surfaced up top | High | Doc PR |
-| F2 | Router+CLI: start router | Router must be started manually as a separate process before anything works | Med | Tool |
-| F3 | Router+CLI: open session | Session/stake opened via raw `curl` calls | High | Tool |
-| F4 | Router+CLI: session → inference | **Session ID must be hand-copied** from the open-session response into a separate inference command | High | Tool ⭐ |
-| F5 | Two wallets | CLI auto-creates one wallet; desktop uses another — confusing until both are imported into MetaMask | Low | Doc note |
-| F6 | Design axis | Desktop = easy but less control; CLI = powerful but painful (not a bug — defines the two tracks) | — | Design |
-| F7 | Router+CLI on Windows | Documented commands are **Linux/systemd** (`systemctl --user`, `*.sh`, `node *.mjs`) — no native-Windows equivalent documented; likely requires WSL | High | Doc + Tool |
-| F8 | Wallet setup command | Uses a **bespoke `everclaw` script**, not a canonical Morpheus command — cannot be recommended to the community as-is | Med | Investigate |
-| F9 | Credential handling | The router API Basic Auth password is naturally copy-pasted verbatim; no guidance that it's a secret to protect/rotate | Med | Doc + Tool |
+| # | Step | Friction | Sev | Status / Owner |
+|---|------|----------|-----|----------------|
+| F1 | Discovering the path | README/getting-started reads "dev / build from source"; the recommended desktop `.exe` and `mor-launch.exe` aren't surfaced up top | High | Open — Doc PR |
+| F2 | Start the router | Auditor started it manually via `systemctl`; **canonically unnecessary** — `mor-launch.exe` starts it | Med | ✅ Resolved (use mor-launch); Doc + Tool |
+| F3 | Open session | Session/stake via raw `curl` for API users | High | Open — Tool |
+| F4 | Session → inference | **Session ID hand-copied** from open-session response into a separate inference call | High | Open — Tool ⭐ |
+| F5 | Two wallets | CLI-created wallet vs desktop wallet — confusing until both imported into MetaMask | Low | Open — Doc note |
+| F6 | Design axis | Desktop = easy but less control; API = powerful but manual (defines the two tracks) | — | Design |
+| F7 | Windows run method | Auditor's `systemctl` / `*.sh` path is **not** the documented Windows path — canonical is `mor-launch.exe` (no systemd) | High | ✅ Resolved — Doc |
+| F8 | Wallet setup command | Canonical wallet = **in-app** (set password → create/recover via mnemonic). No stock *CLI* wallet command in quickstart; `everclaw` script is **bespoke**, not recommendable to community | Med | ✅ Mostly resolved (confirm CLI wallet env var in /reference/env-proxy-router) |
+| F9 | Credential handling | Router password = auto-generated **`.cookie`** (`admin:<random>`). Docs: *"Rotate the admin password regularly. Keep `proxy.conf` out of version control."* API supports **scoped users** (`POST /auth/users`, 29 perms incl. `open_session`, `chat`) | Med | ✅ Resolved — Doc + Tool (create scoped user for booth) |
+| **F10** | **Discoverability of golden path** | A reasonable intern ended up on the HARD path (Linux/systemd/everclaw) while `mor-launch.exe` exists and does it in one double-click. Strong evidence newcomers will mis-path. | **High** | Open — Doc PR (highest ROI) |
+| **F11** | **(Opportunity, not a bug)** | `mor-launch local` runs a **free bundled llama.cpp model** → real inference with **no wallet, no MOR, no staking**. Ideal booth beginner demo. | — | Workshop + Doc |
 
 ### What works well (do NOT "fix")
 - Wallet **funding** was easy (Base ETH + MOR).
 - **Desktop-app staking** is straightforward.
+- **`mor-launch local`** gives a zero-cost inference demo out of the box.
 
 ---
 
-## The manual developer chain (the thing we automate)
+## The manual developer chain (what `morpheus-doctor --dev` automates)
 
-Confirmed environment: **mainnet (Base)**, model **Kimi K2.5**
+Confirmed env: **mainnet (Base, chain 8453)**, model **Kimi K2.5**
 (`model_id 0xbb9e920d94ad3fa2861e1e209d0a969dbe9e1af1cf1ad95c49f76d7b63d32d93`),
-router API on **`localhost:8082`**, session duration **600s (10 min)**.
+router API **`localhost:8082`**, session **600s (10 min)**.
 
-> **SECURITY:** the `admin:...` value below is the router API password. It is a **secret**.
-> It is redacted here as `<ROUTER_API_PASSWORD>` and must never be committed.
+> **SECURITY:** the `admin:...` value is the router's `.cookie` password — a **secret**.
+> Redacted as `<ROUTER_API_PASSWORD>`; never commit. Prefer a **scoped user** (F9) over admin.
 
 ```bash
-# 1. Start the router (Linux/systemd — see F7)
-systemctl --user start morpheus-router
-#    or: ~/morpheus/start-router.sh
+# 1. Start the router
+#    Canonical Windows: double-click mor-launch.exe   (NOT systemctl — see F7)
+#    Auditor's non-standard path:  systemctl --user start morpheus-router
 
-# 2. Set up the wallet (bespoke everclaw script — see F8)
-node skills/everclaw/scripts/everclaw-wallet.mjs setup
+# 2. Wallet
+#    Canonical: in-app (set password -> create/recover via mnemonic)   (see F8)
+#    Auditor's bespoke path:  node skills/everclaw/scripts/everclaw-wallet.mjs setup
 
 # 3. Open a session (stake MOR) — returns a sessionID
 curl -s -u "admin:<ROUTER_API_PASSWORD>" \
-  -X POST "http://localhost:8082/blockchain/models/0xbb9e920d94ad3fa2861e1e209d0a969dbe9e1af1cf1ad95c49f76d7b63d32d93/session" \
+  -X POST "http://localhost:8082/blockchain/models/0xbb9e...32d93/session" \
   -H "Content-Type: application/json" \
   -d '{"sessionDuration": 600}'
-# -> { "sessionID": "..." }   <-- F4: this must be hand-copied into step 4
+# -> { "sessionID": "..." }   <-- F4: must be hand-copied into step 4
 
 # 4. Run inference using the session ID
 curl -s -u "admin:<ROUTER_API_PASSWORD>" \
   -X POST "http://localhost:8082/v1/chat/completions" \
   -H "Content-Type: application/json" \
   -H "session_id: <SESSION_ID>" \
-  -H "model_id: 0xbb9e920d94ad3fa2861e1e209d0a969dbe9e1af1cf1ad95c49f76d7b63d32d93" \
+  -H "model_id: 0xbb9e...32d93" \
   -d '{"model":"kimi-k2.5","messages":[{"role":"user","content":"Hello!"}],"stream":false}'
 ```
 
-**`morpheus-doctor --dev` collapses steps 1, 3, and 4 into one command**, capturing the
-session ID in memory (kills F4) and health-checking the router (kills F2).
+**`morpheus-doctor --dev`** health-checks the router (or launches it), opens the session,
+**captures `sessionID` in memory (kills F4)**, runs inference, and can create a **scoped `chat`
+user (F9)** instead of using admin.
 
 ---
 
-## Open questions (need answers to finish the audit)
+## Open questions
 
-1. **WSL or native Windows?** Are the router+CLI commands run under WSL, or on a Linux box?
-   Determines whether the dev path on real Windows needs a WSL guide or native `.exe` instructions. (F7)
-2. **Canonical wallet command?** Is `everclaw` the intended wallet tool, or is there a stock
-   Morpheus CLI wallet command we should document instead? (F8)
-3. **Timing:** rough end-to-end minutes for the router+CLI path (for the "why the tool matters" story).
-4. Does `win-x64-morpheus-cli-7.3.0.exe` expose the same session/inference flow natively on Windows?
+1. **WSL or native?** Your run used `systemctl`/`.sh` — are you on **WSL / a Linux box** by choice
+   (e.g. a server), or did you simply not hit `mor-launch.exe`? (Confirms F10 severity.)
+2. **Booth machines:** native Windows (use `mor-launch.exe`) or WSL? Drives what the tool assumes.
+3. **Tried `mor-launch local`?** If it works, it becomes the beginner-tier booth demo (F11).
+4. **CLI wallet env var:** confirm from `/reference/env-proxy-router` whether there's a
+   `WALLET_PRIVATE_KEY`-style env for headless wallets (finishes F8).
+5. **Timing:** rough minutes for your hand-rolled path end-to-end (fuels the "why the tool matters" story).
