@@ -3,7 +3,7 @@
 **Target repo:** `MorpheusAIs/Morpheus-Lumerin-Node`
 **Target file:** `docs/get-started/introduction.mdx`
 **Type:** Documentation (small, single-purpose)
-**Related findings:** AUDIT F1, F10 (discoverability), F11 (free local model)
+**Related findings:** AUDIT F1, F10 (discoverability), F11 (free local model), F12 (installer vs archive build)
 
 ---
 
@@ -28,8 +28,8 @@ prose paragraph**, matching the page's existing component style. No other conten
   - **Just want to use it (~5 min):** download the desktop app from the
     [latest release](https://github.com/MorpheusAIs/Morpheus-Lumerin-Node/releases) and run it —
     wallet, chat, and proxy-router are bundled. See the [Consumer quickstart](/get-started/quickstart-consumer).
-  - **Try it free — no wallet, no tokens:** run `mor-launch local` to start the bundled local model
-    and chat immediately.
+  - **Try it free — no wallet, no tokens:** download the **archive (.zip)** build (the one containing
+    `mor-launch.exe`) and run `mor-launch local` to start the bundled local model and chat immediately.
   - **Building on the marketplace?** jump to the [Hosted Inference API](/inference-api/overview).
 
   New to Morpheus? Read on for how the pieces fit together.

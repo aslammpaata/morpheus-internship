@@ -20,9 +20,9 @@ documentation PR, a GitHub issue, or a feature of `morpheus-doctor`.
 
 | Path | How you actually run it (canonical) | Audience | Verdict |
 |------|-------------------------------------|----------|---------|
-| **Desktop app** (`win-x64-morpheus-app`) | Download `.exe`, run, create wallet in-app, Chat → Open Session (stake ≥5 MOR) | Beginners | Smooth. **Already good.** |
-| **Bundled launcher** `mor-launch.exe` | Double-click `mor-launch.exe` — starts proxy-router + CLI + UI together. `mor-launch local` also starts a **free bundled llama.cpp model** | Beginners & devs on Windows | **The golden path most people miss (F10).** |
-| **Hand-rolled router + CLI** (`systemctl`, `everclaw`) | What the auditor actually did — Linux/systemd service + bespoke wallet script + raw curl | Advanced / non-standard | Painful; **non-canonical** — see F7/F8/F10 |
+| **Installer app** (`win-x64-morpheus-app-*.exe`) | Single-file installer → installs to `%APPDATA%\morpheus-app\`; launch from **Start-menu/desktop shortcut** (router auto-starts). **No `mor-launch.exe`** in this build (F12) | Beginners | Smooth. **Already good.** |
+| **Archive build** (`.zip`, contains `mor-launch.exe`) | Extract, then run `mor-launch.exe` (starts proxy-router + CLI + UI). `mor-launch local` starts a **free bundled llama.cpp model** — offline, no wallet | Beginners (free trial) & devs | The free/offline path; **most people never find it (F10)** |
+| **Hand-rolled router + CLI** (`systemctl`, `everclaw`) | What the auditor did in WSL — Linux/systemd service + bespoke wallet script + raw curl | Advanced / non-standard | Painful; **non-canonical** — see F7/F8/F10 |
 
 ---
 
@@ -40,7 +40,8 @@ documentation PR, a GitHub issue, or a feature of `morpheus-doctor`.
 | F8 | Wallet setup command | Canonical wallet = **in-app** (set password → create/recover via mnemonic) OR headless via **`WALLET_PRIVATE_KEY`** env (falls back to system keychain when unset). The `everclaw` script is **bespoke**, not recommendable to community | Med | ✅ Resolved — Doc |
 | F9 | Credential handling | Router password = auto-generated **`.cookie`** (`admin:<random>`). Docs: *"Rotate the admin password regularly. Keep `proxy.conf` out of version control."* API supports **scoped users** (`POST /auth/users`, 29 perms incl. `open_session`, `chat`) | Med | ✅ Resolved — Doc + Tool (create scoped user for booth) |
 | **F10** | **Discoverability of golden path** | A reasonable intern ended up on the HARD path (Linux/systemd/everclaw) while `mor-launch.exe` exists and does it in one double-click. Strong evidence newcomers will mis-path. | **High** | Open — Doc PR (highest ROI) |
-| **F11** | **(Opportunity, not a bug)** | `mor-launch local` runs a **free bundled llama.cpp model** → real inference with **no wallet, no MOR, no staking**. Ideal booth beginner demo. | — | Workshop + Doc |
+| **F11** | **(Opportunity)** | `mor-launch local` runs a **free bundled llama.cpp model** → inference with **no wallet, no MOR, no staking**. **Only in the archive (.zip) build** (see F12). Ideal booth beginner demo. | — | Workshop + Doc |
+| **F12** | **Two Windows distributions** | **Single-file installer** (`win-x64-morpheus-app-*.exe`) → `%APPDATA%\morpheus-app\`, launched from Start-menu shortcut, router auto-starts, **no `mor-launch.exe`**. **Archive (.zip)** → extract-and-run, ships `mor-launch.exe` + the `local` free-model flow. Docs' `mor-launch local` commands assume the archive build, so **installer users hit "mor-launch.exe not found."** | High | Open — Doc PR |
 
 ### What works well (do NOT "fix")
 - Wallet **funding** was easy (Base ETH + MOR).

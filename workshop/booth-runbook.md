@@ -24,7 +24,7 @@ decentralization underneath *after* they're impressed.
 | Tier | Who | Device | Time | What they do | The "aha" |
 |------|-----|--------|------|--------------|-----------|
 | **0 — Try it now** | Everyone | Their phone / booth tablet | ~30–60s | Chat at **app.mor.org** (booth tablet is pre-logged-in for instant use; QR for take-home signup) | "I'm talking to decentralized AI from my phone" |
-| **1 — Run it yourself** | Curious / beginners | Booth **Windows** laptop | ~5 min | Double-click desktop app **or** `mor-launch local` (free bundled model, **works offline**) | "It's running locally, for free, no account" |
+| **1 — Run it yourself** | Curious / beginners | Booth **Windows** laptop | ~5 min | Run **`mor-launch local`** from the **archive (.zip) build** (free bundled model, **works offline, no wallet**). *(The single-file installer app has no `mor-launch.exe` and uses network models instead — F12.)* | "It's running locally, for free, no account" |
 | **2 — Build on it** | Developers | Booth Windows laptop | ~10 min | `morpheus-doctor --dev` → live `session → inference`; show the OpenAI-compatible `api.mor.org`; open a real staked session on Base | "One command, and I own the inference pipeline" |
 
 **The story that ties it together (for Tier 2 / anyone technical):**
@@ -53,8 +53,9 @@ Conference wifi will betray you. Everything that can be done offline, do in adva
 
 - [ ] **Desktop app** installed on each Windows laptop; launched once so Defender/SmartScreen is
       already cleared (the "Allow Defender if prompted" step is done).
-- [ ] **`mor-launch local` tested** and the **local model pre-downloaded** on each laptop (so there's
-      **no model download over conference wifi**). Confirm chat works with wifi **off**.
+- [ ] **Download the archive (.zip) build** on each laptop (the single-file installer has **no
+      `mor-launch.exe`** — F12), extract it, **test `mor-launch local`**, and **pre-download the local
+      model** so there's **no model download over conference wifi**. Confirm chat works with wifi **off**.
 - [ ] **`morpheus-doctor.exe`** built (`GOOS=windows GOARCH=amd64`) and on the desktop of each laptop.
 - [ ] **A funded wallet** for the Tier-2 live-staking demo — small amount of **Base ETH + MOR**
       (enough for several 5–10 min sessions). Use a **dedicated demo wallet**, not a personal one.
