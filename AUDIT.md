@@ -37,7 +37,7 @@ documentation PR, a GitHub issue, or a feature of `morpheus-doctor`.
 | F5 | Two wallets | CLI-created wallet vs desktop wallet — confusing until both imported into MetaMask | Low | Open — Doc note |
 | F6 | Design axis | Desktop = easy but less control; API = powerful but manual (defines the two tracks) | — | Design |
 | F7 | Windows run method | Auditor's `systemctl` / `*.sh` path is **not** the documented Windows path — canonical is `mor-launch.exe` (no systemd) | High | ✅ Resolved — Doc |
-| F8 | Wallet setup command | Canonical wallet = **in-app** (set password → create/recover via mnemonic). No stock *CLI* wallet command in quickstart; `everclaw` script is **bespoke**, not recommendable to community | Med | ✅ Mostly resolved (confirm CLI wallet env var in /reference/env-proxy-router) |
+| F8 | Wallet setup command | Canonical wallet = **in-app** (set password → create/recover via mnemonic) OR headless via **`WALLET_PRIVATE_KEY`** env (falls back to system keychain when unset). The `everclaw` script is **bespoke**, not recommendable to community | Med | ✅ Resolved — Doc |
 | F9 | Credential handling | Router password = auto-generated **`.cookie`** (`admin:<random>`). Docs: *"Rotate the admin password regularly. Keep `proxy.conf` out of version control."* API supports **scoped users** (`POST /auth/users`, 29 perms incl. `open_session`, `chat`) | Med | ✅ Resolved — Doc + Tool (create scoped user for booth) |
 | **F10** | **Discoverability of golden path** | A reasonable intern ended up on the HARD path (Linux/systemd/everclaw) while `mor-launch.exe` exists and does it in one double-click. Strong evidence newcomers will mis-path. | **High** | Open — Doc PR (highest ROI) |
 | **F11** | **(Opportunity, not a bug)** | `mor-launch local` runs a **free bundled llama.cpp model** → real inference with **no wallet, no MOR, no staking**. Ideal booth beginner demo. | — | Workshop + Doc |
@@ -91,10 +91,27 @@ user (F9)** instead of using admin.
 
 ## Open questions
 
-1. **WSL or native?** Your run used `systemctl`/`.sh` — are you on **WSL / a Linux box** by choice
-   (e.g. a server), or did you simply not hit `mor-launch.exe`? (Confirms F10 severity.)
-2. **Booth machines:** native Windows (use `mor-launch.exe`) or WSL? Drives what the tool assumes.
-3. **Tried `mor-launch local`?** If it works, it becomes the beginner-tier booth demo (F11).
-4. **CLI wallet env var:** confirm from `/reference/env-proxy-router` whether there's a
-   `WALLET_PRIVATE_KEY`-style env for headless wallets (finishes F8).
-5. **Timing:** rough minutes for your hand-rolled path end-to-end (fuels the "why the tool matters" story).
+1. ✅ **WSL or native — answered:** auditor develops on a **Windows WSL** client via PowerShell;
+   the `systemctl`/`.sh` path lives in WSL, while the easy path (double-click desktop `.exe`) is what
+   they use to actually run it. Strongly confirms **F10**: even a capable intern split across two paths
+   and did the hard one in WSL.
+2. ✅ **Booth machines — answered:** booth's own laptops are **majority Windows**, but attendees will
+   bring **mixed devices** (Mac/Linux/phones). Implication: attendees can't be assumed to install
+   anything → lead with a **no-install path (Hosted Inference API / web)** for their devices, and use
+   the booth's Windows laptops for hands-on desktop-app / `mor-launch local` demos.
+3. ⏳ **`mor-launch local` — not yet tried.** Auditor only double-clicks the desktop `.exe`. Worth a
+   ~10-min test; if it works it becomes the zero-fund beginner booth demo (F11).
+4. ✅ **CLI wallet env var — answered:** `WALLET_PRIVATE_KEY` (falls back to system keychain). F8 closed.
+5. ✅ **Timing — answered:** the hand-rolled router+CLI (WSL) path took **~1 week** to fully set up
+   and run, vs **one double-click** for the desktop app. This is the headline stat for the "why
+   discoverability matters" story (F10).
+
+## Canonical config surface (for morpheus-doctor)
+
+From `/reference/env-proxy-router`:
+- `WEB_ADDRESS` (default `0.0.0.0:8082`) — local API bind
+- `WALLET_PRIVATE_KEY` — headless wallet
+- `ETH_NODE_ADDRESS` (RPC), `ETH_NODE_CHAIN_ID` (`8453` main / `84532` test)
+- `DIAMOND_CONTRACT_ADDRESS` (main `0x6aBE1d282f72B474E54527D93b979A4f64d3030a`)
+- `MOR_TOKEN_ADDRESS` (main `0x7431aDa8a591C955a994a21710752EF9b882b8e3`)
+- Auth: `.cookie` (default `./.cookie`, `admin:<pw>`), seed via `COOKIE_CONTENT`; `proxy.conf` (`AUTH_CONFIG_FILE_PATH`) holds `rpcauth=`/`rpcwhitelist=`

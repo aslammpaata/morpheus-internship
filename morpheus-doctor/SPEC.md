@@ -37,18 +37,25 @@ $ morpheus-doctor --dev --model kimi-k2.5 --prompt "Hello!"
   > "Hello! How can I help you today?"
 ```
 
-## Config & secrets
+## Config & secrets (canonical names, from /reference/env-proxy-router)
 
-- Router API password (Basic Auth) is a **secret** (AUDIT F9). Read from env
-  (`MORPHEUS_ROUTER_AUTH`) or a git-ignored config file — **never** a flag or committed default.
+- Router API auth comes from the **`.cookie`** file (`admin:<random>`, default `./.cookie`; path via
+  `COOKIE_FILE_PATH`). Treat as a **secret** (AUDIT F9). `morpheus-doctor` reads it from the cookie
+  file or `MORPHEUS_ROUTER_AUTH` env — **never** a flag or committed default. Prefer creating a
+  **scoped `chat`/`open_session` user** (`POST /auth/users`) over using admin.
+- Router API address: `WEB_ADDRESS` (default `0.0.0.0:8082`).
+- Headless wallet: **`WALLET_PRIVATE_KEY`** (falls back to system keychain when unset).
+- Network: `ETH_NODE_ADDRESS` (RPC), `ETH_NODE_CHAIN_ID` (`8453` main / `84532` test),
+  `DIAMOND_CONTRACT_ADDRESS`, `MOR_TOKEN_ADDRESS`.
 - Flags: `--model`, `--prompt`, `--duration`, `--host` (default `localhost:8082`), `--json`.
 
-## Open design questions (blocked on AUDIT answers)
+## Design decisions (resolved from AUDIT)
 
-- **WSL vs native (F7):** if the router only runs under WSL/systemd, does `--dev` start it via WSL,
-  or do we target the native `win-x64-morpheus-router-7.3.0.exe`? Prefer native for a true one-`.exe` story.
-- **Wallet setup (F8):** should `--dev` also wrap wallet creation, or assume a funded wallet exists?
-  Depends on whether there's a canonical (non-`everclaw`) wallet command.
+- **Target:** build native `windows/amd64` `.exe` (cross-compiled from the author's WSL dev env).
+- **Router lifecycle (F7):** canonical Windows run is `mor-launch.exe` (no systemd). `--dev`
+  **assumes the router is up and health-checks it**; it does not manage systemd. Keeps the tool thin.
+- **Wallet (F8):** assumes a funded wallet exists (desktop app or `WALLET_PRIVATE_KEY`); the tool
+  does **not** wrap wallet creation.
 
 ## Non-goals
 
