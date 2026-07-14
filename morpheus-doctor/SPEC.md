@@ -29,6 +29,13 @@ Replaces steps 1/3/4 of the manual `curl` dance (AUDIT F2/F3/F4) with **one comm
 3. **Run inference** — POST to `/v1/chat/completions` with the captured `session_id` + `model_id`.
 4. **Report** — show the model's reply and a "✅ session <id> live for N minutes" summary.
 
+**Multi-turn.** `--dev --interactive` keeps the same session open across
+several prompts. The router does not retain conversation state itself
+(`StoreChatContext`/`ForwardChatContext` govern logging, not memory) — the
+tool maintains the message history client-side and resends the full
+transcript each turn, standard OpenAI-style chat semantics. Verified: the
+model correctly recalls facts from earlier turns in the same run.
+
 ```
 $ morpheus-doctor --dev --model kimi-k2.5 --prompt "Hello!"
 ✔ router healthy (localhost:8082)
@@ -52,8 +59,10 @@ $ morpheus-doctor --dev --model kimi-k2.5 --prompt "Hello!"
 ## Design decisions (resolved from AUDIT)
 
 - **Target:** build native `windows/amd64` `.exe` (cross-compiled from the author's WSL dev env).
-- **Router lifecycle (F7):** canonical Windows run is `mor-launch.exe` (no systemd). `--dev`
-  **assumes the router is up and health-checks it**; it does not manage systemd. Keeps the tool thin.
+- **Router lifecycle (F7):** canonical Windows run is the Desktop App installer
+  (Start-menu/desktop shortcut — no `mor-launch.exe` in current releases,
+  despite older docs referencing an archive build). `--dev` **assumes the
+  router is up and health-checks it**; it does not manage the app lifecycle.
 - **Wallet (F8):** assumes a funded wallet exists (desktop app or `WALLET_PRIVATE_KEY`); the tool
   does **not** wrap wallet creation.
 

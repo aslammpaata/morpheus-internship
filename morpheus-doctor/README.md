@@ -44,12 +44,33 @@ Developer flow — open a session and run inference in one step:
 ./morpheus-doctor --dev --prompt "Hello!"
 ```
 
+Multi-turn conversation (same session, full history resent each turn):
+
+```bash
+./morpheus-doctor --dev --interactive
+```
+
 Flags: `--host` (default `localhost:8082`), `--model`, `--model-id`, `--duration`,
-`--json` (print raw responses), `--cookie`.
+`--interactive` (keep the session open for multiple prompts — type `exit`/`quit`
+to end; conversation history is resent each turn), `--json` (print raw
+responses), `--cookie`.
 
-## Status
 
-**Scaffold.** The happy path — reachable check → open session → capture session ID → inference —
-is implemented against the documented API, with endpoint/body shapes matching the verified curl
-flow in [`../AUDIT.md`](../AUDIT.md) (mainnet Base, Kimi K2.5). Next steps: build & run against a
-live router, add the scoped-user creation helper (AUDIT F9), and a `--local` beginner preflight.
+### Status
+
+**Tested against a live router (Base mainnet).** Verified: preflight (router
+up/down), `--dev` happy path against two different models (proving it's not
+hardcoded to one), `--interactive` multi-turn chat with correct context
+retention, and graceful handling of router-down, malformed/unregistered model
+IDs, and a real mid-session provider disconnect (no crash, failed turn is
+retried by the user, not left in history).
+
+**Known limitation:** exiting `--interactive` (via `exit`/`quit` or Ctrl+C)
+stops the local loop only — it does **not** close the session early. Your
+stake refunds automatically at natural session expiry, same as any Morpheus
+session; there is no penalty for exiting early this way, you just wait out the
+remaining duration for the refund, same as if you'd simply stopped chatting in
+the desktop app without closing.
+
+Next: scoped-user creation helper (AUDIT F9), `--local` beginner preflight
+track (SPEC.md).

@@ -8,6 +8,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -30,15 +31,16 @@ const (
 )
 
 type config struct {
-	host     string
-	model    string
-	modelID  string
-	prompt   string
-	duration int
-	dev      bool
-	jsonOut  bool
-	cookie   string
-	timeout  time.Duration
+	host        string
+	model       string
+	modelID     string
+	prompt      string
+	duration    int
+	dev         bool
+	jsonOut     bool
+	cookie      string
+	timeout     time.Duration
+	interactive bool
 }
 
 func main() {
@@ -59,6 +61,7 @@ func parseFlags() config {
 	flag.BoolVar(&cfg.dev, "dev", false, "developer flow: open a session and run inference")
 	flag.BoolVar(&cfg.jsonOut, "json", false, "also print raw JSON responses")
 	flag.StringVar(&cfg.cookie, "cookie", cookieDefault(), "path to the router .cookie file")
+	flag.BoolVar(&cfg.interactive, "interactive", false, "keep the session open for multiple prompts (type 'exit' to end)")
 	flag.Parse()
 	cfg.timeout = 60 * time.Second
 	return cfg
@@ -236,25 +239,73 @@ func devFlow(c *client, cfg config) error {
 	}
 	fmt.Printf("✔ session opened: %s\n", sess.SessionID)
 
+	if cfg.interactive {
+		return interactiveLoop(c, cfg, sess.SessionID)
+	}
+
 	fmt.Println("> running inference...")
-	var chat chatResp
-	err = c.do(http.MethodPost, "/v1/chat/completions",
-		map[string]string{"session_id": sess.SessionID, "model_id": cfg.modelID},
-		map[string]any{
-			"model":    cfg.model,
-			"messages": []map[string]string{{"role": "user", "content": cfg.prompt}},
-			"stream":   false,
-		}, &chat)
+	reply, err := c.chat(sess.SessionID, cfg.model, cfg.modelID,
+		[]map[string]string{{"role": "user", "content": cfg.prompt}})
 	if err != nil {
 		return fmt.Errorf("inference: %w", err)
 	}
 	fmt.Println("✔ inference ok")
-
-	if len(chat.Choices) > 0 {
-		fmt.Printf("\n  %s\n", strings.TrimSpace(chat.Choices[0].Message.Content))
-	}
+	fmt.Printf("\n  %s\n", reply)
 	fmt.Printf("\n✅ session %s live (~%dm)\n", short(sess.SessionID), cfg.duration/60)
 	return nil
+}
+
+// interactiveLoop sends repeated prompts against the same session, maintaining
+// the full message history client-side and resending it each turn (OpenAI-style
+// chat semantics) -- the router does not retain conversation state on its own.
+func interactiveLoop(c *client, cfg config, sessionID string) error {
+	fmt.Printf("\n> session live for ~%dm. Type a message and press Enter (type 'exit' to end early).\n\n", cfg.duration/60)
+	scanner := bufio.NewScanner(os.Stdin)
+	var history []map[string]string
+	for {
+		fmt.Print("you> ")
+		if !scanner.Scan() {
+			break
+		}
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" {
+			continue
+		}
+		if line == "exit" || line == "quit" {
+			break
+		}
+		history = append(history, map[string]string{"role": "user", "content": line})
+		reply, err := c.chat(sessionID, cfg.model, cfg.modelID, history)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "✖ "+err.Error())
+			history = history[:len(history)-1] // don't poison history with a failed turn
+			continue
+		}
+		history = append(history, map[string]string{"role": "assistant", "content": reply})
+		fmt.Printf("model> %s\n\n", reply)
+	}
+	fmt.Printf("✅ session %s ended (stake refunds automatically ~1min after expiry)\n", short(sessionID))
+	return nil
+}
+
+// chat sends the full message history against an already-open session and
+// returns the latest reply text.
+func (c *client) chat(sessionID, model, modelID string, messages []map[string]string) (string, error) {
+	var chat chatResp
+	err := c.do(http.MethodPost, "/v1/chat/completions",
+		map[string]string{"session_id": sessionID, "model_id": modelID},
+		map[string]any{
+			"model":    model,
+			"messages": messages,
+			"stream":   false,
+		}, &chat)
+	if err != nil {
+		return "", err
+	}
+	if len(chat.Choices) == 0 {
+		return "", errors.New("empty response")
+	}
+	return strings.TrimSpace(chat.Choices[0].Message.Content), nil
 }
 
 func snippet(b []byte) string {
