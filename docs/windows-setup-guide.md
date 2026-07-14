@@ -1,6 +1,6 @@
 ---
 title: "Getting Started with Morpheus on Windows"
-description: "Chat with decentralized AI on Windows in minutes — from a one-click app to a free offline model to the developer API."
+description: "Chat with decentralized AI on Windows in minutes — from a one-click app to a free local model to the developer API."
 audience: ["consumer", "developer"]
 last_verified: "v7.3.0"
 ---
@@ -12,26 +12,28 @@ infrastructure. This guide gets you chatting on **Windows** as fast as possible.
 fits you:
 
 - **[Path A — Just use it](#path-a--just-use-it-easiest)** (installer app, ~5 min) — the smoothest way in.
-- **[Path B — Try it free & offline](#path-b--try-it-free--offline)** (archive build, no wallet, no tokens).
+- **[Path B — Try it free & offline](#path-b--try-it-free--offline)** (same install, no wallet, no tokens).
 - **[Path C — Build on it](#path-c--build-on-it-developers)** (local API + hosted API, for developers).
 - **On a phone / Mac / not Windows?** Open **[app.mor.org](https://app.mor.org)** in any browser and chat there.
 
 ---
 
-## ⚠️ First, pick the right download — this trips people up
+## ⚠️ One download does everything — ignore any mention of a `.zip` archive
 
-The [Releases page](https://github.com/MorpheusAIs/Morpheus-Lumerin-Node/releases) offers **two
-different Windows builds**. They are **not** the same, and choosing wrong is the #1 early stumble:
+The [Releases page](https://github.com/MorpheusAIs/Morpheus-Lumerin-Node/releases) lists a few
+Windows assets. For almost everyone, there is only **one you want**:
 
 | Build | What it is | How you launch it | Best for |
 |-------|-----------|-------------------|----------|
-| **Installer** — `win-x64-morpheus-app-<ver>.exe` | A normal Windows installer. Installs to `%APPDATA%\morpheus-app\`. | From the **Start-menu / desktop shortcut** it creates. The proxy-router **auto-starts** with the app. | Path A. Most people. |
-| **Archive** — the `.zip` build | A folder you extract and run in place. Contains **`mor-launch.exe`**, the CLI, and the router. | Extract, then run **`mor-launch.exe`** from the extracted folder. | Paths B & C. Free local model + command line. |
+| **Installer** — `win-x64-morpheus-app-<ver>.exe` | A normal Windows installer. Installs to `%APPDATA%\morpheus-app\`. Bundles the desktop UI, the proxy-router, **and a free local model**. | From the **Start-menu / desktop shortcut** it creates. The proxy-router **auto-starts** with the app. | Paths A **and** B. Nearly everyone. |
+| `win-x64-morpheus-router-<ver>.exe` | Headless proxy-router only, no GUI. For running a provider on a server. | Manual `.env` setup, command line. | Providers only — not covered here. |
+| `win-x64-morpheus-cli-<ver>.exe` | Standalone CLI client. | — | **Currently broken on Windows** — see the note in Path C. Skip it for now. |
 
-> 🔑 **The gotcha:** `mor-launch.exe` and the free `mor-launch local` model **only exist in the
-> archive build**. If you installed the single-file installer and try to run `mor-launch.exe`, Windows
-> will say *"file not found"* — that's expected. Use the Start-menu shortcut instead, or download the
-> archive if you specifically want the local-model / command-line flow.
+> 🔑 **If you've seen instructions elsewhere mentioning a `.zip` archive and `mor-launch.exe`:**
+> that build does not currently exist on the Releases page (checked across every release from
+> v7.1.12 through v7.3.3 — [tracked here](https://github.com/MorpheusAIs/Morpheus-Lumerin-Node/issues/796)).
+> Ignore those instructions — the **installer** above covers everything they promised, including the
+> free offline model.
 
 ---
 
@@ -52,36 +54,33 @@ different Windows builds**. They are **not** the same, and choosing wrong is the
 
 ✅ You're using decentralized AI.
 
-> 💡 No funds yet? Do **Path B** first — it's free and needs no wallet.
+> 💡 No funds yet? Do **Path B** first — it's free and needs no wallet, and it's the exact same install
+> you just did.
 
 ---
 
 ## Path B — Try it free & offline
 
-Great for a first taste, a demo, or working without internet. **No wallet, no tokens, no account.**
+Great for a first taste, a demo, or working without internet. **No wallet, no tokens, no account —
+and no separate download.** This uses the same installer from Path A.
 
-1. **Download the archive (.zip) build** from the
-   [Releases page](https://github.com/MorpheusAIs/Morpheus-Lumerin-Node/releases) — the one that
-   contains `mor-launch.exe` (not the single-file installer).
-   > _Author note: confirm the exact `.zip` asset name against the live Releases page before publishing._
-2. **Extract** it to a folder you can find (e.g. `C:\morpheus`).
-3. **Open a terminal** in that folder and run:
-   ```powershell
-   .\mor-launch.exe local
-   ```
-   This starts a **bundled local model** (llama.cpp). The first run may download the model once.
-4. **Chat** — the UI opens and you can talk to the model running **on your own machine**, offline.
+1. If you haven't already, complete **step 1–3 of Path A** (download, install, open the app).
+2. In the **Chat** tab, open the model picker and select the **bundled local model**
+   (llama.cpp-based, runs entirely on your machine).
+3. **Chat** — no wallet, no session, no MOR required. Responses come from your own hardware.
 
-✅ Real AI, running locally, for free.
+✅ Real AI, running locally, for free, from the same app you already installed.
 
 ---
 
 ## Path C — Build on it (developers)
 
-Both builds run a local **proxy-router API** on `http://localhost:8082` that is **OpenAI-compatible**.
+The Desktop App runs a local **proxy-router API** on `http://localhost:8082` that is
+**OpenAI-compatible**.
 
 **Auth:** the router auto-generates an admin password in a **`.cookie`** file
-(`admin:<random>`, next to the router; path via `COOKIE_FILE_PATH`).
+(`admin:<random>`, default location `%APPDATA%\morpheus-app\services\.cookie` for the installer
+build; path via `COOKIE_FILE_PATH`).
 > 🔐 Treat it as a **secret** — don't commit it or show it on screen. For anything shared, create a
 > **scoped user** (`POST /auth/users`) limited to `open_session` + `chat` instead of using admin.
 
@@ -103,20 +102,31 @@ curl -s -u "admin:<ROUTER_API_PASSWORD>" \
   -d '{"model":"<MODEL>","messages":[{"role":"user","content":"Hello!"}],"stream":false}'
 ```
 
+> ⚠️ **Multi-turn chat:** the router does **not** remember earlier messages in a session on its own.
+> Resend the full conversation history in `messages` on every request (standard OpenAI-style client
+> behavior) — see [issue #794](https://github.com/MorpheusAIs/Morpheus-Lumerin-Node/issues/794).
+
 **Headless wallet:** set `WALLET_PRIVATE_KEY` (falls back to the system keychain when unset).
 
 **Prefer the cloud?** The hosted API at **`https://api.mor.org/api/v1`** is also OpenAI-compatible —
 create an account and API key at [app.mor.org](https://app.mor.org) and point any OpenAI client at it.
 
-> 🛠️ Tired of copy-pasting the session ID between steps 1 and 2? `morpheus-doctor --dev` does the whole
-> `session → inference` handshake in one command.
+> 🛠️ **Tired of copy-pasting the session ID between steps 1 and 2, or hand-managing multi-turn
+> history?** [`morpheus-doctor`](../morpheus-doctor/) does the whole `session → inference` handshake
+> in one command (`--dev`), and handles multi-turn conversations correctly out of the box
+> (`--dev --interactive`). Tested end-to-end against multiple models.
+>
+> **Skip `mor-cli` for now** — the official CLI binary currently fails to launch on Windows
+> ([issue #792](https://github.com/MorpheusAIs/Morpheus-Lumerin-Node/issues/792)); `morpheus-doctor`
+> or raw `curl` are the working alternatives until it's fixed.
 
 ---
 
 ## Verify it's working
 
 - **Router up?** Visit `http://localhost:8082` (Swagger/API) — it should respond.
-- **Inference?** A "Hello!" in the chat (Path A/B) or the curl call (Path C) should return a reply.
+- **Inference?** A "Hello!" in the chat (Path A/B) or the curl call / `morpheus-doctor` (Path C) should
+  return a reply.
 
 ---
 
@@ -124,11 +134,13 @@ create an account and API key at [app.mor.org](https://app.mor.org) and point an
 
 | Symptom | Cause & fix |
 |---------|-------------|
-| `mor-launch.exe` not found | You installed the **single-file installer**, which has no `mor-launch.exe`. Launch from the Start-menu shortcut, or download the **archive** build for the launcher / local model. |
+| Instructions online mention `mor-launch.exe` or a `.zip` archive and it doesn't exist on the Releases page | That build isn't currently shipped ([issue #796](https://github.com/MorpheusAIs/Morpheus-Lumerin-Node/issues/796)). Use the installer — it includes everything, including the free local model (Path B). |
 | SmartScreen / Defender blocks the app | Unsigned binary. **More info → Run anyway.** |
-| Chat says no funds / can't open session | Network models need **Base ETH** (gas) + **≥5 MOR** (stake). Or use **Path B** (free local model). |
+| Chat says no funds / can't open session | Network models need **Base ETH** (gas) + **≥5 MOR** (stake). Or use **Path B** (free local model, no funds needed). |
 | I have two wallets and I'm confused | The app wallet and any CLI/`WALLET_PRIVATE_KEY` wallet are separate — import both into MetaMask to track them in one place. |
 | Inference returns 401 / empty | Check the Basic Auth (`.cookie`) credentials and that the `session_id` header matches the one returned when you opened the session. |
+| `mor-cli.exe` fails immediately, even on `--help` | Known bug on Windows ([issue #792](https://github.com/MorpheusAIs/Morpheus-Lumerin-Node/issues/792)). Use `morpheus-doctor` or raw `curl` (Path C) instead. |
+| A "copy" button in the app (e.g. model ID) doesn't actually copy anything | Known UI bug ([issue #793](https://github.com/MorpheusAIs/Morpheus-Lumerin-Node/issues/793)). Retrieve the value via the API instead: `GET /blockchain/models`. |
 
 ---
 
