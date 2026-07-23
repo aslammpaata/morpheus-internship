@@ -1,36 +1,47 @@
-# Morpheus Onboarding System
+# Morpheus Internship — Onboarding & Contributions
 
-Tooling, documentation, and workshop material that shrink the distance between a newcomer and
-their first working inference on the [Morpheus](https://mor.org) / Lumerin decentralized AI network.
+Project work for the Morpheus onboarding-friction audit, upstream
+contributions, and Web3 event (Jul 30–31) prep.
 
-Built during an internship at MorpheusAI, ahead of a Web3 booth event (Aug 2026). Designed to keep
-providing value — and to be maintained by the team — long after the internship ends.
+The developer tool that came out of this work, `morpheus-doctor`, now lives
+in its own repo: **[morpheus-doctor](https://github.com/aslammpaata/morpheus-doctor)**.
 
-## Why this exists
+## Structure
 
-The [Morpheus-Lumerin-Node](https://github.com/MorpheusAIs/Morpheus-Lumerin-Node) already ships a
-solid, cross-platform Proxy Router and a recommended desktop app. The remaining barrier to adoption
-is **onboarding friction** — discovering the easy path, funding a wallet, and (for developers) the
-painful manual `router → session → inference` chain. This repo owns that gap.
+```
+contributions/     Friction audit + tracked status of every upstream PR/issue
+guides/            Step-by-step setup guides (Windows installer, headless/dev path)
+workshop/          Web3 event booth materials (runbook, handout, demo script)
+```
 
-## Components
+## Contributions
 
-| Path | What it is | Status |
-|------|-----------|--------|
-| [`AUDIT.md`](./AUDIT.md) | Living Windows onboarding friction log — source of truth for everything else | 🟡 In progress |
-| [`docs/windows-setup-guide.md`](./docs/windows-setup-guide.md) | Beginner-friendly, Windows-first getting-started guide (PR target: Mintlify docs) | ⬜ Draft |
-| [`morpheus-doctor/`](./morpheus-doctor/) | Single-binary Go tool: preflight + one-command `router → session → inference` for the developer path | ⬜ Spec'd |
-| Workshop + booth kit | Tiered live-demo script + short video (built on the tool) | ⬜ Planned |
+- **[AUDIT.md](contributions/AUDIT.md)** — full friction log from a firsthand
+  zero-to-first-inference run, findings F1–F16+, cross-referenced against
+  official docs.
+- **[STATUS.md](contributions/STATUS.md)** — every PR/issue filed upstream,
+  and whether "Closed" on GitHub actually means resolved.
 
-## Design principles
+## Guides
 
-- **Don't rebuild what exists.** Automate and document around the official node.
-- **Two audiences, two tracks.** Beginners → desktop app (docs + workshop). Developers → CLI (the tool).
-- **Docs are a deliverable, not an afterthought.** Every finding becomes a doc, an issue, or a feature.
-- **Upstreamable.** Prefer small, high-quality PRs to the official repo over a fork nobody merges.
+- **[windows-setup-guide.md](guides/windows-setup-guide.md)** — installer
+  path, free local model, developer/API path, troubleshooting.
+- **developer-headless-guide.md** — *(in progress)* WSL2/headless
+  proxy-router setup, wallet injection, session + inference via `curl` and
+  via `morpheus-doctor`.
 
-## Flagship deliverable
+## Workshop
 
-`morpheus-doctor` — a single static Windows `.exe` that replaces the manual developer chain
-(start router, open session, copy-paste session ID, run inference) with **one command**.
-See [`morpheus-doctor/SPEC.md`](./morpheus-doctor/SPEC.md).
+Booth materials for the Web3 event, kept current against what's actually
+been tested rather than the original plan — see
+[STATUS.md's booth risk summary](contributions/STATUS.md#booth-risk-summary)
+for the current go/no-go state of each onboarding path.
+
+## Key findings so far
+
+- The Desktop App's Windows onboarding is currently broken on a clean
+  install, confirmed on multiple machines/versions ([#811](https://github.com/MorpheusAIs/Morpheus-Lumerin-Node/issues/811), critical).
+- `mor-cli` has multiple confirmed issues on Windows and in its interactive
+  chat flow ([#792](https://github.com/MorpheusAIs/Morpheus-Lumerin-Node/issues/792)).
+- The headless router + `morpheus-doctor` path is fully tested and working —
+  current fallback for both dev demos and, if needed, the booth itself.
