@@ -15,6 +15,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"math/big"
 	"net/http"
 	"os"
 	"strings"
@@ -22,12 +23,15 @@ import (
 )
 
 const (
-	defaultHost     = "localhost:8082"
-	defaultModel    = "kimi-k2.5"
-	defaultModelID  = "0xbb9e920d94ad3fa2861e1e209d0a969dbe9e1af1cf1ad95c49f76d7b63d32d93"
-	defaultPrompt   = "Hello!"
-	defaultDuration = 600 // seconds (10 minutes)
-	defaultCookie   = "./.cookie"
+	defaultHost       = "localhost:8082"
+	defaultModel      = "kimi-k2.5"
+	defaultModelID    = "0xbb9e920d94ad3fa2861e1e209d0a969dbe9e1af1cf1ad95c49f76d7b63d32d93"
+	defaultPrompt     = "Hello!"
+	defaultDuration   = 600 // seconds (10 minutes)
+	defaultCookie     = "./.cookie"
+	sessionCacheFile  = ".morpheus-doctor-session.json"
+	lowMorWarningMOR  = 5.0 // heads-up threshold, not a hard block
+	sessionSafetyMarg = 30 * time.Second
 )
 
 type config struct {
@@ -41,6 +45,7 @@ type config struct {
 	cookie      string
 	timeout     time.Duration
 	interactive bool
+	fresh       bool
 }
 
 func main() {
@@ -62,6 +67,7 @@ func parseFlags() config {
 	flag.BoolVar(&cfg.jsonOut, "json", false, "also print raw JSON responses")
 	flag.StringVar(&cfg.cookie, "cookie", cookieDefault(), "path to the router .cookie file")
 	flag.BoolVar(&cfg.interactive, "interactive", false, "keep the session open for multiple prompts (type 'exit' to end)")
+	flag.BoolVar(&cfg.fresh, "fresh", false, "ignore any cached session and open a new one")
 	flag.Parse()
 	cfg.timeout = 60 * time.Second
 	return cfg
@@ -187,6 +193,42 @@ func (c *client) reachable() error {
 	return nil
 }
 
+type balanceResp struct {
+	MOR string `json:"mor"`
+	ETH string `json:"eth"`
+}
+
+// balance fetches the router wallet's on-chain MOR/ETH balance (wei strings).
+func (c *client) balance() (*balanceResp, error) {
+	var b balanceResp
+	if err := c.do(http.MethodGet, "/blockchain/balance", nil, nil, &b); err != nil {
+		return nil, err
+	}
+	return &b, nil
+}
+
+// weiToFloat parses a wei-denominated integer string (arbitrarily large) into a
+// *big.Float scaled to whole tokens. Using math/big avoids the precision loss a
+// plain float64 conversion would hit on 18-decimal wei values.
+func weiToFloat(wei string) (*big.Float, error) {
+	i, ok := new(big.Int).SetString(wei, 10)
+	if !ok {
+		return nil, fmt.Errorf("not a valid integer: %q", wei)
+	}
+	f := new(big.Float).SetInt(i)
+	return f.Quo(f, big.NewFloat(1e18)), nil
+}
+
+// formatWei renders a wei string as a 4-decimal token amount, or the raw string
+// if it can't be parsed (better to show something than to error the whole run).
+func formatWei(wei string) string {
+	f, err := weiToFloat(wei)
+	if err != nil {
+		return wei
+	}
+	return f.Text('f', 4)
+}
+
 func run(cfg config) error {
 	c, err := newClient(cfg)
 	if err != nil {
@@ -202,6 +244,17 @@ func run(cfg config) error {
 		return fmt.Errorf("router unreachable at %s (%v)", c.base, err)
 	}
 	fmt.Println("✔ router reachable")
+
+	if bal, err := c.balance(); err != nil {
+		fmt.Printf("  (wallet balance unavailable: %v)\n", err)
+	} else {
+		fmt.Printf("  wallet: %s MOR, %s ETH\n", formatWei(bal.MOR), formatWei(bal.ETH))
+		if morF, err := weiToFloat(bal.MOR); err == nil {
+			if f, _ := morF.Float64(); f < lowMorWarningMOR {
+				fmt.Printf("  ⚠ low MOR balance — sessions require a minimum stake (~%.0f MOR)\n", lowMorWarningMOR)
+			}
+		}
+	}
 
 	if !cfg.dev {
 		fmt.Println("\nPreflight OK. Re-run with --dev to open a session and run inference.")
@@ -223,35 +276,105 @@ type chatResp struct {
 	} `json:"choices"`
 }
 
-// devFlow opens a session, captures the session ID in memory, and runs one
-// inference request with it -- replacing the manual open-session / copy-id /
-// run-inference chain (AUDIT F3/F4).
-func devFlow(c *client, cfg config) error {
-	fmt.Printf("\n> opening session (model %s, %ds)...\n", cfg.model, cfg.duration)
-	var sess sessionResp
-	err := c.do(http.MethodPost, "/blockchain/models/"+cfg.modelID+"/session", nil,
-		map[string]any{"sessionDuration": cfg.duration}, &sess)
+// sessionCache is the on-disk record of the last session morpheus-doctor opened,
+// stored as a small JSON file next to the binary so --dev/--interactive can reuse
+// a still-live session across separate invocations instead of always opening (and
+// staking for) a new one.
+type sessionCache struct {
+	SessionID string `json:"sessionID"`
+	ModelID   string `json:"modelID"`
+	Model     string `json:"model"`
+	OpenedAt  int64  `json:"openedAt"` // unix seconds
+	Duration  int    `json:"duration"` // seconds
+}
+
+func (s sessionCache) expiresAt() time.Time {
+	return time.Unix(s.OpenedAt, 0).Add(time.Duration(s.Duration) * time.Second)
+}
+
+// valid reports whether the cached session is for the requested model and has
+// enough time left to be worth reusing (a safety margin avoids handing back a
+// session that expires mid-request).
+func (s sessionCache) valid(modelID string) bool {
+	if s.SessionID == "" || s.ModelID != modelID {
+		return false
+	}
+	return time.Now().Add(sessionSafetyMarg).Before(s.expiresAt())
+}
+
+func loadSessionCache() (sessionCache, bool) {
+	var s sessionCache
+	b, err := os.ReadFile(sessionCacheFile)
 	if err != nil {
-		return fmt.Errorf("open session: %w", err)
+		return s, false
 	}
-	if sess.SessionID == "" {
-		return errors.New("open session: response contained no sessionID")
+	if err := json.Unmarshal(b, &s); err != nil {
+		return s, false
 	}
-	fmt.Printf("✔ session opened: %s\n", sess.SessionID)
+	return s, true
+}
+
+// saveSessionCache writes best-effort; a failure to cache shouldn't fail the run.
+func saveSessionCache(s sessionCache) {
+	b, err := json.MarshalIndent(s, "", "  ")
+	if err != nil {
+		return
+	}
+	_ = os.WriteFile(sessionCacheFile, b, 0o600)
+}
+
+// devFlow reuses a cached session if one is valid for this model (unless --fresh),
+// otherwise opens a new one and caches it. Either way it then runs inference or
+// hands off to the interactive loop -- replacing the manual open-session /
+// copy-id / run-inference chain (AUDIT F3/F4).
+func devFlow(c *client, cfg config) error {
+	var sessionID string
+	var exp time.Time
+
+	if !cfg.fresh {
+		if cached, ok := loadSessionCache(); ok && cached.valid(cfg.modelID) {
+			sessionID = cached.SessionID
+			exp = cached.expiresAt()
+			fmt.Printf("\n✔ reusing cached session: %s (%s remaining)\n", short(sessionID), remaining(exp))
+		}
+	}
+
+	if sessionID == "" {
+		fmt.Printf("\n> opening session (model %s, %ds)...\n", cfg.model, cfg.duration)
+		var sess sessionResp
+		err := c.do(http.MethodPost, "/blockchain/models/"+cfg.modelID+"/session", nil,
+			map[string]any{"sessionDuration": cfg.duration}, &sess)
+		if err != nil {
+			return fmt.Errorf("open session: %w", err)
+		}
+		if sess.SessionID == "" {
+			return errors.New("open session: response contained no sessionID")
+		}
+		sessionID = sess.SessionID
+		exp = time.Now().Add(time.Duration(cfg.duration) * time.Second)
+		fmt.Printf("✔ session opened: %s\n", sessionID)
+		saveSessionCache(sessionCache{
+			SessionID: sessionID,
+			ModelID:   cfg.modelID,
+			Model:     cfg.model,
+			OpenedAt:  time.Now().Unix(),
+			Duration:  cfg.duration,
+		})
+	}
 
 	if cfg.interactive {
-		return interactiveLoop(c, cfg, sess.SessionID)
+		return interactiveLoop(c, cfg, sessionID)
 	}
 
 	fmt.Println("> running inference...")
-	reply, err := c.chat(sess.SessionID, cfg.model, cfg.modelID,
+	reply, err := c.chat(sessionID, cfg.model, cfg.modelID,
 		[]map[string]string{{"role": "user", "content": cfg.prompt}})
 	if err != nil {
 		return fmt.Errorf("inference: %w", err)
 	}
 	fmt.Println("✔ inference ok")
 	fmt.Printf("\n  %s\n", reply)
-	fmt.Printf("\n✅ session %s live (~%dm)\n", short(sess.SessionID), cfg.duration/60)
+	fmt.Printf("\n✅ session %s live (%s remaining)\n", short(sessionID), remaining(exp))
 	return nil
 }
 
@@ -259,7 +382,7 @@ func devFlow(c *client, cfg config) error {
 // the full message history client-side and resending it each turn (OpenAI-style
 // chat semantics) -- the router does not retain conversation state on its own.
 func interactiveLoop(c *client, cfg config, sessionID string) error {
-	fmt.Printf("\n> session live for ~%dm. Type a message and press Enter (type 'exit' to end early).\n\n", cfg.duration/60)
+	fmt.Printf("\n> session live. Type a message and press Enter (type 'exit' to end early).\n\n")
 	scanner := bufio.NewScanner(os.Stdin)
 	var history []map[string]string
 	for {
@@ -284,7 +407,7 @@ func interactiveLoop(c *client, cfg config, sessionID string) error {
 		history = append(history, map[string]string{"role": "assistant", "content": reply})
 		fmt.Printf("model> %s\n\n", reply)
 	}
-	fmt.Printf("✅ session %s ended (stake refunds automatically ~1min after expiry)\n", short(sessionID))
+	fmt.Printf("✅ session %s ended locally (stake refunds automatically at natural expiry; cached for reuse until then)\n", short(sessionID))
 	return nil
 }
 
@@ -321,4 +444,13 @@ func short(s string) string {
 		return s[:10] + "..."
 	}
 	return s
+}
+
+// remaining formats the time left until exp as "XmYs", or "expired" if past.
+func remaining(exp time.Time) string {
+	d := time.Until(exp)
+	if d < 0 {
+		return "expired"
+	}
+	return fmt.Sprintf("%dm%ds", int(d.Minutes()), int(d.Seconds())%60)
 }
