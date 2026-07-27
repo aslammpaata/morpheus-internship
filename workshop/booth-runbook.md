@@ -1,11 +1,30 @@
 # Morpheus Booth Runbook
 
-**Event:** Web3 blockchain event — MorpheusAI booth (Aug 2026 — _confirm exact name/date/location_)
+**Event:** Web3 blockchain event — MorpheusAI booth, **Jul 30–31, 2026**
 **Goal:** Get as many attendees as possible to *personally experience* decentralized AI, capture
 leads/feedback, and drive signups + GitHub interest.
 **Design principle:** attendees arrive on **mixed devices** (Windows/Mac/Linux/phones) and range from
 total beginners to developers. The flow is **tiered** so anyone gets a "wow" in under a minute, and
 the curious can go deeper.
+
+---
+
+## 🔴 Read this first — the one open risk that gates everything
+
+**The Desktop App's wallet onboarding is currently broken** on a fresh install, confirmed across
+multiple machines and versions ([issue #811](https://github.com/MorpheusAIs/Morpheus-Lumerin-Node/issues/811)).
+This directly threatens **Tier 1** below, since it may block reaching the chat screen at all on a
+clean booth laptop.
+
+**Decision deadline: today.** Test this on an actual booth laptop right now:
+1. Fully wipe `%APPDATA%\morpheus-app` and reinstall clean.
+2. Attempt wallet onboarding.
+3. If it fails → **Tier 1 pivots to the headless path** (see [Contingencies](#contingencies)) or to a
+   **pre-onboarded, never-logged-out laptop** that we set up once (before the bug can strike again)
+   and never touch the wallet flow on again between now and the event.
+
+Do not proceed with printing materials or finalizing the video until this is resolved one way or
+the other — both downstream deliverables assume a specific Tier 1 flow.
 
 ---
 
@@ -24,12 +43,12 @@ decentralization underneath *after* they're impressed.
 | Tier | Who | Device | Time | What they do | The "aha" |
 |------|-----|--------|------|--------------|-----------|
 | **0 — Try it now** | Everyone | Their phone / booth tablet | ~30–60s | Chat at **app.mor.org** (booth tablet is pre-logged-in for instant use; QR for take-home signup) | "I'm talking to decentralized AI from my phone" |
-| **1 — Run it yourself** | Curious / beginners | Booth **Windows** laptop | ~5 min | Run **`mor-launch local`** from the **archive (.zip) build** (free bundled model, **works offline, no wallet**). *(The single-file installer app has no `mor-launch.exe` and uses network models instead — F12.)* | "It's running locally, for free, no account" |
-| **2 — Build on it** | Developers | Booth Windows laptop | ~10 min | `morpheus-doctor --dev` → live `session → inference`; show the OpenAI-compatible `api.mor.org`; open a real staked session on Base | "One command, and I own the inference pipeline" |
+| **1 — Run it yourself** | Curious / beginners | Booth **Windows** laptop | ~5 min | Open the **Desktop App**, pick the bundled **local model** in the Chat tab (free, no wallet, works offline). *(There is no `.zip`/`mor-launch.exe` archive build — confirmed absent from every release, [issue #796](https://github.com/MorpheusAIs/Morpheus-Lumerin-Node/issues/796). This is a single installer, not two builds.)* | "It's running locally, for free, no account" |
+| **2 — Build on it** | Developers | Booth Windows laptop | ~10 min | `morpheus-doctor --dev` → live `session → inference` in one command; show the OpenAI-compatible `api.mor.org`; open a real staked session on Base | "One command, and I own the inference pipeline" |
 
 **The story that ties it together (for Tier 2 / anyone technical):**
-> "Setting this up the hard way took me **a week**. The easy path is **one double-click**. That gap is
-> the problem we've been closing — here's the tooling and docs that get you from zero to inference fast."
+> "Setting this up the hard way took me **a week**. The easy path should be **one double-click** —
+> we're still closing that gap; here's the tooling and the bugs we've found and reported along the way."
 
 ---
 
@@ -42,8 +61,8 @@ decentralization underneath *after* they're impressed.
   - `app.mor.org` — "Try it on your phone / make your own account"
   - GitHub repo — "Run a node / contribute"
   - **Feedback form** — "60-second feedback → [swag]"
-- **Monitor/TV** looping the 3–5 min demo video (see task #4 sibling deliverable).
-- Stickers + a **one-page setup handout** (= the beginner Windows setup guide, task #2).
+- **Monitor/TV** looping the 3–5 min demo video.
+- Stickers + a **one-page setup handout** (the beginner Windows setup guide).
 
 ---
 
@@ -51,20 +70,29 @@ decentralization underneath *after* they're impressed.
 
 Conference wifi will betray you. Everything that can be done offline, do in advance.
 
-- [ ] **Desktop app** installed on each Windows laptop; launched once so Defender/SmartScreen is
-      already cleared (the "Allow Defender if prompted" step is done).
-- [ ] **Download the archive (.zip) build** on each laptop (the single-file installer has **no
-      `mor-launch.exe`** — F12), extract it, **test `mor-launch local`**, and **pre-download the local
-      model** so there's **no model download over conference wifi**. Confirm chat works with wifi **off**.
-- [ ] **`morpheus-doctor.exe`** built (`GOOS=windows GOARCH=amd64`) and on the desktop of each laptop.
+- [ ] **Test onboarding on each booth laptop from a clean install, today** (see the risk banner
+      above). If it fails on any machine, that machine needs the contingency plan applied before
+      it's considered booth-ready.
+- [ ] **Desktop App** installed on each Windows laptop; launched once so Defender/SmartScreen is
+      already cleared.
+- [ ] **Confirm the bundled local model works and is fully downloaded** — open Chat, select the
+      local model, send a message, then **turn off wifi and send another** to confirm it truly runs
+      offline. No model download should ever happen over conference wifi.
+- [ ] **`morpheus-doctor.exe`** built (`GOOS=windows GOARCH=amd64`), tested, and on the desktop of
+      each laptop. *(Confirmed working end-to-end — see `morpheus-doctor` repo.)*
 - [ ] **A funded wallet** for the Tier-2 live-staking demo — small amount of **Base ETH + MOR**
       (enough for several 5–10 min sessions). Use a **dedicated demo wallet**, not a personal one.
+      If Desktop App onboarding is broken, fund this wallet via the **headless router +
+      `WALLET_PRIVATE_KEY`** path instead — proven working, doesn't touch the broken onboarding flow.
 - [ ] **Scoped API user** created on the router (`open_session` + `chat` only) so no admin `.cookie`
-      is ever shown on-screen (AUDIT F9). **Never display the admin password during a demo.**
+      is ever shown on-screen. **Never display the admin password during a demo.**
 - [ ] **`app.mor.org` booth demo account** created and logged in on the front tablet; an **API key**
       generated for the Tier-2 `api.mor.org` demo.
 - [ ] **QR codes** printed and laminated; **feedback form** live; **handout** printed.
 - [ ] **Full offline dry-run**: unplug wifi, confirm Tier 1 still works end-to-end.
+- [ ] **`mor-cli` is not part of any demo** — confirmed broken on Windows and in its chat flow
+      ([issue #792](https://github.com/MorpheusAIs/Morpheus-Lumerin-Node/issues/792)). Don't
+      improvise it in on the day.
 
 ---
 
@@ -74,9 +102,9 @@ Conference wifi will betray you. Everything that can be done offline, do in adva
 decentralized marketplace of GPU providers, not one company's servers. Want your own account? Scan
 here." *(→ signup = lead)*
 
-**Tier 1 (at a laptop):** "No account, no wallet — watch." Double-click `mor-launch local`. "That's a
-full AI model running on *this* laptop, for free, even with the wifi off. The same app can also
-connect you to bigger models on the network when you want them."
+**Tier 1 (at a laptop):** "No account, no wallet — watch." Open the Chat tab, select the local model.
+"That's a full AI model running on *this* laptop, for free, even with the wifi off. The same app can
+also connect you to bigger models on the network when you want them."
 
 **Tier 2 (developer):** "You like a terminal? This took me a week the hard way." Run
 `morpheus-doctor --dev`. "One command: it started a session, staked, captured the session ID, and ran
@@ -89,41 +117,42 @@ your existing code just works by pointing at `api.mor.org`."
 
 | If… | Then… |
 |-----|-------|
-| **Wifi dies** | Make **Tier 1 `mor-launch local`** the star — it's offline. Tell attendees "this is the point: it doesn't need the cloud." |
-| **SmartScreen/Defender warning** | Pre-cleared on booth machines; for attendees' own machines, show them the "More info → Run anyway" step and note it's an unsigned-binary warning, not malware. |
+| **Desktop App onboarding is broken and unfixed by the event** | Pre-onboard each booth laptop **once**, successfully, well before the event, and never touch the wallet-setup flow again — treat those laptops as fragile fixtures, not something to reset. If onboarding can't be completed at all on a given machine, drop Tier 1 on that machine and route walk-ups to Tier 0 (tablet) or a Tier-2 demo instead. |
+| **Wifi dies** | Tier 1 (local model) is the star — it's offline. Tell attendees "this is the point: it doesn't need the cloud." |
+| **SmartScreen/Defender warning** | Pre-cleared on booth machines; for attendees' own machines, show them "More info → Run anyway" and note it's an unsigned-binary warning, not malware. |
 | **Long line** | Front tablet + QR self-serve keeps Tier 0 flowing without staff. |
 | **`app.mor.org` down / signup friction** | Fall back to Tier 1 local demo; collect leads via the feedback QR instead of signups. |
 | **Someone wants to run a provider/earn** | Point to GitHub repo + provider quickstart; take their email for follow-up (out of scope for a booth). |
 
 ---
 
-## Lead capture & adoption metrics (feeds the reports deliverable)
+## Lead capture & adoption metrics
 
 Track, with a simple tally sheet + digital form:
 - Tier-0 chats handed out · **`app.mor.org` signups** · Tier-1 local runs · Tier-2 dev demos
 - Feedback-form submissions · GitHub stars **before/after** the event · sessions opened on-chain
 - Qualitative: top 3 questions asked, top confusion points (→ new AUDIT entries / doc PRs)
 
-Post-event, compile these into an **adoption report** (ties into `reports/`), which doubles as
-evidence of impact for the internship write-up.
+Post-event, compile these into an adoption report — doubles as evidence of impact for the internship
+write-up.
 
 ---
 
 ## Open items / decisions needed
 
-1. **Event name, exact date, location** — and are booth laptops **provided or BYO**?
-2. **Budget** for the Tier-2 demo wallet (Base ETH + MOR).
-3. **Does `mor-launch local` actually work?** — pending your ~10-min test. Gates Tier 1.
-4. **Is `app.mor.org` chat free / does it include trial credits?** — confirm at `apidocs.mor.org`;
-   affects whether Tier 0 costs anything per message.
-5. **Who owns the booth `app.mor.org` demo account** and the demo wallet keys.
-6. **Is `morpheus-doctor --dev` built in time?** If not, Tier 2 falls back to the manual curl demo
-   (still fine — the "week vs double-click" story carries it).
+1. ~~Does `mor-launch local` work?~~ **Resolved: no such build exists.** Tier 1 uses the Desktop
+   App's bundled local model instead.
+2. ~~Is `morpheus-doctor --dev` built in time?~~ **Resolved: yes, built and thoroughly tested.**
+3. **🔴 Is Desktop App onboarding fixed before the event?** — see the risk banner at the top. This is
+   the only unresolved item that can still change the plan.
+4. Budget for the Tier-2 demo wallet (Base ETH + MOR).
+5. Is `app.mor.org` chat free / does it include trial credits? — confirm at `apidocs.mor.org`.
+6. Who owns the booth `app.mor.org` demo account and the demo wallet keys.
 
 ---
 
-## Deliverables this runbook depends on (tracked)
+## Deliverables this runbook depends on
 
-- Beginner Windows setup guide → the printed **handout** (task #2)
-- `morpheus-doctor` → the **Tier-2 demo** (task #3)
-- 3–5 min demo video → the **looping monitor** content (task #4)
+- Beginner Windows setup guide → the printed handout
+- `morpheus-doctor` → the Tier-2 demo (built, tested, in its own repo)
+- 3–5 min demo video → the looping monitor content

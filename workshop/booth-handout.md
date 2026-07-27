@@ -4,6 +4,10 @@
 in where marked and export to PDF. Keep it to **one side** if possible; the "How it works" block is
 optional back-side content.
 
+> ⚠️ **Do not send to print until the onboarding risk in `booth-runbook.md` is resolved** — the
+> "On your PC" instructions below assume the Desktop App's wallet/local-model flow works on a clean
+> install. Confirm this on a real booth laptop first.
+
 ---
 
 <!-- ================== FRONT ================== -->
@@ -20,13 +24,13 @@ Open **app.mor.org**, sign up, and start chatting.
 `[ QR → https://app.mor.org ]`
 
 ### 2️⃣ On your PC — free & offline
-1. Download the **archive build** from the releases page.
-2. Extract it, then run `mor-launch.exe local`.
+1. Download the **desktop app** (`win-x64-morpheus-app`) from the releases page and install it.
+2. Open it, go to **Chat**, and select the **bundled local model**.
 3. Chat with a model running **on your own machine** — no wallet, no tokens, works offline.
 `[ QR → https://github.com/MorpheusAIs/Morpheus-Lumerin-Node/releases ]`
 
-> Just want the simplest install? Grab the **desktop app** (`win-x64-morpheus-app`) instead and launch
-> it from the Start menu — it bundles the wallet, chat, and router.
+> Same install also gets you onto the full network — fund a wallet with a little MOR + ETH to open a
+> session with any model, right from the same app.
 
 ### 3️⃣ For developers — OpenAI-compatible API
 Point any OpenAI client at **`https://api.mor.org/api/v1`** (get a key at app.mor.org).
@@ -61,6 +65,6 @@ You  →  Morpheus app / proxy-router  →  Base blockchain (session + payment) 
 ### Production notes (not printed)
 
 - Generate QR codes for: `app.mor.org`, the Releases page, `nodedocs.mor.org`, and your feedback form.
-- Verify the exact **archive `.zip` asset name** on the Releases page before printing (see setup guide).
-- Consider a short link / vanity URL under each QR for people who prefer typing.
+- There is **one Windows download** (the installer) — no separate archive build exists. Don't print
+  or QR-link anything implying otherwise.
 - Match Morpheus brand colors/logo when you lay it out for print.
