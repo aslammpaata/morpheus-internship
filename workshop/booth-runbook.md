@@ -9,25 +9,6 @@ the curious can go deeper.
 
 ---
 
-## 🔴 Read this first — the one open risk that gates everything
-
-**The Desktop App's wallet onboarding is currently broken** on a fresh install, confirmed across
-multiple machines and versions ([issue #811](https://github.com/MorpheusAIs/Morpheus-Lumerin-Node/issues/811)).
-This directly threatens **Tier 1** below, since it may block reaching the chat screen at all on a
-clean booth laptop.
-
-**Decision deadline: today.** Test this on an actual booth laptop right now:
-1. Fully wipe `%APPDATA%\morpheus-app` and reinstall clean.
-2. Attempt wallet onboarding.
-3. If it fails → **Tier 1 pivots to the headless path** (see [Contingencies](#contingencies)) or to a
-   **pre-onboarded, never-logged-out laptop** that we set up once (before the bug can strike again)
-   and never touch the wallet flow on again between now and the event.
-
-Do not proceed with printing materials or finalizing the video until this is resolved one way or
-the other — both downstream deliverables assume a specific Tier 1 flow.
-
----
-
 ## The hook (say this in one line)
 
 > "This is AI that **no single company owns** — you can run it on your own device, and right now,
@@ -43,7 +24,7 @@ decentralization underneath *after* they're impressed.
 | Tier | Who | Device | Time | What they do | The "aha" |
 |------|-----|--------|------|--------------|-----------|
 | **0 — Try it now** | Everyone | Their phone / booth tablet | ~30–60s | Chat at **app.mor.org** (booth tablet is pre-logged-in for instant use; QR for take-home signup) | "I'm talking to decentralized AI from my phone" |
-| **1 — Run it yourself** | Curious / beginners | Booth **Windows** laptop | ~5 min | Open the **Desktop App**, pick the bundled **local model** in the Chat tab (free, no wallet, works offline). *(There is no `.zip`/`mor-launch.exe` archive build — confirmed absent from every release, [issue #796](https://github.com/MorpheusAIs/Morpheus-Lumerin-Node/issues/796). This is a single installer, not two builds.)* | "It's running locally, for free, no account" |
+| **1 — Run it yourself** | Curious / beginners | Booth **Windows** laptop | ~5 min | Open the Desktop App, complete wallet setup (now confirmed working on a clean install — #811), and pick the bundled local model in the Chat tab for a free, offline demo — or fund it to try the full network. *(There is no `.zip`/`mor-launch.exe` archive build — confirmed absent from every release, [issue #796](https://github.com/MorpheusAIs/Morpheus-Lumerin-Node/issues/796). This is a single installer, not two builds.)* | "It's running locally, for free, no account" |
 | **2 — Build on it** | Developers | Booth Windows laptop | ~10 min | `morpheus-doctor --dev` → live `session → inference` in one command; show the OpenAI-compatible `api.mor.org`; open a real staked session on Base | "One command, and I own the inference pipeline" |
 
 **The story that ties it together (for Tier 2 / anyone technical):**
@@ -70,9 +51,7 @@ decentralization underneath *after* they're impressed.
 
 Conference wifi will betray you. Everything that can be done offline, do in advance.
 
-- [ ] **Test onboarding on each booth laptop from a clean install, today** (see the risk banner
-      above). If it fails on any machine, that machine needs the contingency plan applied before
-      it's considered booth-ready.
+- ✅ Onboarding confirmed working on a clean install (#811) — still do one clean-install test per booth laptop as a sanity check, not a risk-gate.
 - [ ] **Desktop App** installed on each Windows laptop; launched once so Defender/SmartScreen is
       already cleared.
 - [ ] **Confirm the bundled local model works and is fully downloaded** — open Chat, select the
@@ -117,7 +96,6 @@ your existing code just works by pointing at `api.mor.org`."
 
 | If… | Then… |
 |-----|-------|
-| **Desktop App onboarding is broken and unfixed by the event** | Pre-onboard each booth laptop **once**, successfully, well before the event, and never touch the wallet-setup flow again — treat those laptops as fragile fixtures, not something to reset. If onboarding can't be completed at all on a given machine, drop Tier 1 on that machine and route walk-ups to Tier 0 (tablet) or a Tier-2 demo instead. |
 | **Wifi dies** | Tier 1 (local model) is the star — it's offline. Tell attendees "this is the point: it doesn't need the cloud." |
 | **SmartScreen/Defender warning** | Pre-cleared on booth machines; for attendees' own machines, show them "More info → Run anyway" and note it's an unsigned-binary warning, not malware. |
 | **Long line** | Front tablet + QR self-serve keeps Tier 0 flowing without staff. |
@@ -143,8 +121,7 @@ write-up.
 1. ~~Does `mor-launch local` work?~~ **Resolved: no such build exists.** Tier 1 uses the Desktop
    App's bundled local model instead.
 2. ~~Is `morpheus-doctor --dev` built in time?~~ **Resolved: yes, built and thoroughly tested.**
-3. **🔴 Is Desktop App onboarding fixed before the event?** — see the risk banner at the top. This is
-   the only unresolved item that can still change the plan.
+3. Is Desktop App onboarding fixed? Resolved — confirmed working, #811.
 4. Budget for the Tier-2 demo wallet (Base ETH + MOR).
 5. Is `app.mor.org` chat free / does it include trial credits? — confirm at `apidocs.mor.org`.
 6. Who owns the booth `app.mor.org` demo account and the demo wallet keys.

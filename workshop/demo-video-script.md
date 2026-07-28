@@ -5,7 +5,7 @@
 **Format:** 1080p screen capture. **Audio optional** — design **on-screen captions** so it works
 muted on the booth loop.
 
-> ⚠️ Before recording, confirm on the actual recording machine that Desktop App wallet onboarding
+
 > completes successfully (see `booth-runbook.md`'s risk banner) — the Tier 1 and Tier 2 shots both
 > depend on a working install.
 

@@ -4,7 +4,7 @@
 in where marked and export to PDF. Keep it to **one side** if possible; the "How it works" block is
 optional back-side content.
 
-> ⚠️ **Do not send to print until the onboarding risk in `booth-runbook.md` is resolved** — the
+
 > "On your PC" instructions below assume the Desktop App's wallet/local-model flow works on a clean
 > install. Confirm this on a real booth laptop first.
 

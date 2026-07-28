@@ -21,7 +21,7 @@ always mean fixed — see #792/#794 below.
 | [#794](https://github.com/MorpheusAIs/Morpheus-Lumerin-Node/issues/794) | Docs: chat context not retained by default | ✅ | Closed, no linked fix | **Not resolved.** Reopened, offered to draft the doc fix myself |
 | [#795](https://github.com/MorpheusAIs/Morpheus-Lumerin-Node/issues/795) | Docs: fastest path not surfaced | ✅ | — | Check linked PR status before relying on this row |
 | [#796](https://github.com/MorpheusAIs/Morpheus-Lumerin-Node/issues/796) | Docs reference nonexistent `.zip`/`mor-launch.exe` | ✅ | Closed via PR #814/#815 | **Resolved.** Real docs fix, stale references removed |
-| [#811](https://github.com/MorpheusAIs/Morpheus-Lumerin-Node/issues/811) | Onboarding completely broken on fresh install | ✅ | Open | **Critical** — confirmed on multiple machines, multiple versions. Booth-blocking if unresolved by event |
+| [#811](https://github.com/MorpheusAIs/Morpheus-Lumerin-Node/issues/811) | Onboarding completely broken on fresh install | ✅ | Closed via PR #831 | **Resolved** — confirmed on multiple machines, multiple versions. |
 
 ## Open follow-ups (not yet filed as separate issues)
 
@@ -33,7 +33,7 @@ always mean fixed — see #792/#794 below.
 
 | Path | Status | Booth-usable? |
 |---|---|---|
-| Desktop App onboarding | Broken (#811) | ❌ No, unless fixed before Jul 30 |
+| Desktop App onboarding | Broken (#811) | ✅ Working |
 | `mor-cli` | 4 confirmed issues | ❌ No |
 | Headless router + curl | Working, tested | ✅ Yes |
 | `morpheus-doctor` | Working, tested | ✅ Yes |
