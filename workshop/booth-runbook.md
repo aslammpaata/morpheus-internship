@@ -51,10 +51,10 @@ decentralization underneath *after* they're impressed.
 
 Conference wifi will betray you. Everything that can be done offline, do in advance.
 
-- ✅ Onboarding confirmed working on a clean install (#811) — still do one clean-install test per booth laptop as a sanity check, not a risk-gate.
+- [✅] Onboarding confirmed working on a clean install (#811) — still do one clean-install test per booth laptop as a sanity check, not a risk-gate.
 - [ ] **Desktop App** installed on each Windows laptop; launched once so Defender/SmartScreen is
       already cleared.
-- [ ] **Confirm the bundled local model works and is fully downloaded** — open Chat, select the
+- [✅] **Confirm the bundled local model works and is fully downloaded** — open Chat, select the
       local model, send a message, then **turn off wifi and send another** to confirm it truly runs
       offline. No model download should ever happen over conference wifi.
 - [ ] **`morpheus-doctor.exe`** built (`GOOS=windows GOARCH=amd64`), tested, and on the desktop of
