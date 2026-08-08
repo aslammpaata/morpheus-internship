@@ -112,12 +112,12 @@ curl -s -u "admin:<ROUTER_API_PASSWORD>" \
 create an account and API key at [app.mor.org](https://app.mor.org) and point any OpenAI client at it.
 
 > 🛠️ **Tired of copy-pasting the session ID between steps 1 and 2, or hand-managing multi-turn
-> history?** [`morpheus-doctor`](../morpheus-doctor/) does the whole `session → inference` handshake
+> history?** [`morctl`](../morctl/) does the whole `session → inference` handshake
 > in one command (`--dev`), and handles multi-turn conversations correctly out of the box
 > (`--dev --interactive`). Tested end-to-end against multiple models.
 >
 > **Skip `mor-cli` for now** — the official CLI binary currently fails to launch on Windows
-> ([issue #792](https://github.com/MorpheusAIs/Morpheus-Lumerin-Node/issues/792)); `morpheus-doctor`
+> ([issue #792](https://github.com/MorpheusAIs/Morpheus-Lumerin-Node/issues/792)); `morctl`
 > or raw `curl` are the working alternatives until it's fixed.
 
 ---
@@ -125,7 +125,7 @@ create an account and API key at [app.mor.org](https://app.mor.org) and point an
 ## Verify it's working
 
 - **Router up?** Visit `http://localhost:8082` (Swagger/API) — it should respond.
-- **Inference?** A "Hello!" in the chat (Path A/B) or the curl call / `morpheus-doctor` (Path C) should
+- **Inference?** A "Hello!" in the chat (Path A/B) or the curl call / `morctl` (Path C) should
   return a reply.
 
 ---
@@ -139,7 +139,7 @@ create an account and API key at [app.mor.org](https://app.mor.org) and point an
 | Chat says no funds / can't open session | Network models need **Base ETH** (gas) + **≥5 MOR** (stake). Or use **Path B** (free local model, no funds needed). |
 | I have two wallets and I'm confused | The app wallet and any CLI/`WALLET_PRIVATE_KEY` wallet are separate — import both into MetaMask to track them in one place. |
 | Inference returns 401 / empty | Check the Basic Auth (`.cookie`) credentials and that the `session_id` header matches the one returned when you opened the session. |
-| `mor-cli.exe` fails immediately, even on `--help` | Known bug on Windows ([issue #792](https://github.com/MorpheusAIs/Morpheus-Lumerin-Node/issues/792)). Use `morpheus-doctor` or raw `curl` (Path C) instead. |
+| `mor-cli.exe` fails immediately, even on `--help` | Known bug on Windows ([issue #792](https://github.com/MorpheusAIs/Morpheus-Lumerin-Node/issues/792)). Use `morctl` or raw `curl` (Path C) instead. |
 | A "copy" button in the app (e.g. model ID) doesn't actually copy anything | Known UI bug ([issue #793](https://github.com/MorpheusAIs/Morpheus-Lumerin-Node/issues/793)). Retrieve the value via the API instead: `GET /blockchain/models`. |
 
 ---

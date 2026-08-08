@@ -3,8 +3,8 @@
 Project work for the Morpheus onboarding-friction audit, upstream
 contributions, and Web3 event (Jul 30–31) prep.
 
-The developer tool that came out of this work, `morpheus-doctor`, now lives
-in its own repo: **[morpheus-doctor](https://github.com/aslammpaata/morpheus-doctor)**.
+The developer tool that came out of this work, `morctl`, now lives
+in its own repo: **[morctl](https://github.com/aslammpaata/morctl)**.
 
 ## Structure
 
@@ -28,7 +28,7 @@ workshop/          Web3 event booth materials (runbook, handout, demo script)
   path, free local model, developer/API path, troubleshooting.
 - **developer-headless-guide.md** — *(in progress)* WSL2/headless
   proxy-router setup, wallet injection, session + inference via `curl` and
-  via `morpheus-doctor`.
+  via `morctl`.
 
 ## Workshop
 
@@ -43,5 +43,5 @@ for the current go/no-go state of each onboarding path.
   install, confirmed on multiple machines/versions ([#811](https://github.com/MorpheusAIs/Morpheus-Lumerin-Node/issues/811), critical).
 - `mor-cli` has multiple confirmed issues on Windows and in its interactive
   chat flow ([#792](https://github.com/MorpheusAIs/Morpheus-Lumerin-Node/issues/792)).
-- The headless router + `morpheus-doctor` path is fully tested and working —
+- The headless router + `morctl` path is fully tested and working —
   current fallback for both dev demos and, if needed, the booth itself.

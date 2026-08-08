@@ -25,7 +25,7 @@ decentralization underneath *after* they're impressed.
 |------|-----|--------|------|--------------|-----------|
 | **0 — Try it now** | Everyone | Their phone / booth tablet | ~30–60s | Chat at **app.mor.org** (booth tablet is pre-logged-in for instant use; QR for take-home signup) | "I'm talking to decentralized AI from my phone" |
 | **1 — Run it yourself** | Curious / beginners | Booth **Windows** laptop | ~5 min | Open the Desktop App, complete wallet setup (now confirmed working on a clean install — #811), and pick the bundled local model in the Chat tab for a free, offline demo — or fund it to try the full network. *(There is no `.zip`/`mor-launch.exe` archive build — confirmed absent from every release, [issue #796](https://github.com/MorpheusAIs/Morpheus-Lumerin-Node/issues/796). This is a single installer, not two builds.)* | "It's running locally, for free, no account" |
-| **2 — Build on it** | Developers | Booth Windows laptop | ~10 min | `morpheus-doctor --dev` → live `session → inference` in one command; show the OpenAI-compatible `api.mor.org`; open a real staked session on Base | "One command, and I own the inference pipeline" |
+| **2 — Build on it** | Developers | Booth Windows laptop | ~10 min | `morctl --dev` → live `session → inference` in one command; show the OpenAI-compatible `api.mor.org`; open a real staked session on Base | "One command, and I own the inference pipeline" |
 
 **The story that ties it together (for Tier 2 / anyone technical):**
 > "Setting this up the hard way took me **a week**. The easy path should be **one double-click** —
@@ -57,8 +57,8 @@ Conference wifi will betray you. Everything that can be done offline, do in adva
 - [✅] **Confirm the bundled local model works and is fully downloaded** — open Chat, select the
       local model, send a message, then **turn off wifi and send another** to confirm it truly runs
       offline. No model download should ever happen over conference wifi.
-- [ ] **`morpheus-doctor.exe`** built (`GOOS=windows GOARCH=amd64`), tested, and on the desktop of
-      each laptop. *(Confirmed working end-to-end — see `morpheus-doctor` repo.)*
+- [ ] **`morctl.exe`** built (`GOOS=windows GOARCH=amd64`), tested, and on the desktop of
+      each laptop. *(Confirmed working end-to-end — see `morctl` repo.)*
 - [ ] **A funded wallet** for the Tier-2 live-staking demo — small amount of **Base ETH + MOR**
       (enough for several 5–10 min sessions). Use a **dedicated demo wallet**, not a personal one.
       If Desktop App onboarding is broken, fund this wallet via the **headless router +
@@ -86,7 +86,7 @@ here." *(→ signup = lead)*
 also connect you to bigger models on the network when you want them."
 
 **Tier 2 (developer):** "You like a terminal? This took me a week the hard way." Run
-`morpheus-doctor --dev`. "One command: it started a session, staked, captured the session ID, and ran
+`morctl --dev`. "One command: it started a session, staked, captured the session ID, and ran
 inference — the thing that used to be four manual curl calls. And the API is OpenAI-compatible, so
 your existing code just works by pointing at `api.mor.org`."
 
@@ -120,7 +120,7 @@ write-up.
 
 1. ~~Does `mor-launch local` work?~~ **Resolved: no such build exists.** Tier 1 uses the Desktop
    App's bundled local model instead.
-2. ~~Is `morpheus-doctor --dev` built in time?~~ **Resolved: yes, built and thoroughly tested.**
+2. ~~Is `morctl --dev` built in time?~~ **Resolved: yes, built and thoroughly tested.**
 3. Is Desktop App onboarding fixed? Resolved — confirmed working, #811.
 4. Budget for the Tier-2 demo wallet (Base ETH + MOR).
 5. Is `app.mor.org` chat free / does it include trial credits? — confirm at `apidocs.mor.org`.
@@ -131,5 +131,5 @@ write-up.
 ## Deliverables this runbook depends on
 
 - Beginner Windows setup guide → the printed handout
-- `morpheus-doctor` → the Tier-2 demo (built, tested, in its own repo)
+- `morctl` → the Tier-2 demo (built, tested, in its own repo)
 - 3–5 min demo video → the looping monitor content

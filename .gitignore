@@ -7,9 +7,9 @@ config.local.*
 wallet.json
 
 # Go
-morpheus-doctor/morpheus-doctor
-morpheus-doctor/*.exe
-morpheus-doctor/bin/
+morctl/morctl
+morctl/*.exe
+morctl/bin/
 
 # OS / editor
 Thumbs.db

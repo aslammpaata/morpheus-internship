@@ -13,7 +13,7 @@
 
 Catalog every friction point on the **zero-to-first-inference** path on Windows, so we can fix
 discovery/docs and automate the painful developer flow. Each entry is a candidate for a
-documentation PR, a GitHub issue, or a feature of `morpheus-doctor`.
+documentation PR, a GitHub issue, or a feature of `morctl`.
 
 ---
 
@@ -34,8 +34,8 @@ documentation PR, a GitHub issue, or a feature of `morpheus-doctor`.
 |---|------|----------|-----|----------------|
 | F1 | Discovering the path | README/getting-started reads "dev / build from source"; the recommended desktop `.exe` isn't surfaced up top. (Note: original wording also cited `mor-launch.exe` as under-surfaced — drop that; see F12.) | High | Open — Doc PR (**PR-01 submitted**) |
 | F2 | Start the router | Auditor started it manually via `systemctl`; **canonically unnecessary** — the Desktop App starts it automatically | Med | ✅ Resolved; Doc + Tool |
-| F3 | Open session | Session/stake via raw `curl` for API users | High | ✅ Automated — `morpheus-doctor --dev` |
-| F4 | Session → inference | **Session ID hand-copied** from open-session response into a separate inference call | High | ✅ Resolved — `morpheus-doctor --dev` captures it in memory |
+| F3 | Open session | Session/stake via raw `curl` for API users | High | ✅ Automated — `morctl --dev` |
+| F4 | Session → inference | **Session ID hand-copied** from open-session response into a separate inference call | High | ✅ Resolved — `morctl --dev` captures it in memory |
 | F5 | Two wallets | CLI-created wallet vs desktop wallet — confusing until both imported into MetaMask | Low | Open — Doc note |
 | F6 | Design axis | Desktop = easy but less control; API = powerful but manual (defines the two tracks) | — | Design |
 | F7 | Windows run method | Auditor's `systemctl`/`*.sh` path is **not** the documented Windows path — canonical is the Desktop App's Start-menu shortcut (no systemd, no `mor-launch.exe`) | High | ✅ Resolved — Doc |
@@ -45,18 +45,18 @@ documentation PR, a GitHub issue, or a feature of `morpheus-doctor`.
 | **F11** | **(Opportunity)** | The Desktop App installer bundles a **free local llama.cpp model** (`services\ai-model.gguf`) → inference with **no wallet, no MOR, no staking**, selectable directly in the Chat tab. (Corrected: **not** archive-only — it's part of the standard installer.) | — | Workshop + Doc |
 | **F12** | **Archive build does not exist (was: "two Windows distributions")** | Official docs (`docs/04-consumer-setup.md`, provider quickstart at nodedocs.mor.org) describe an "extract the `.zip`, run `mor-launch.exe`" flow. **Verified against every release from v7.1.12 through v7.3.3: no `.zip` archive asset exists.** Current releases ship only: Desktop App installer, headless proxy-router binary, CLI binary, Docker image, TEE compose. Following the documented archive instructions is a dead end — there is no file to download. This is stale documentation, not a fabrication or user error. | **High** | Open — Doc PR (docs need to drop the archive/`mor-launch` references or the team needs to reinstate the archive build) |
 | **F13** | **Model-card "copy" button silently fails** | In the Models tab, clicking the copy icon next to a model's `ID` shows a success toast but does not actually populate the clipboard (confirmed: pasting after the click yields nothing). Forces users to retrieve the full model ID via the router API instead (`GET /blockchain/models`). | Low–Med | Open — bug report |
-| **F14** | **Chat sessions do not share conversation context by default** | Router config flags `StoreChatContext`/`ForwardChatContext` do **not** mean the router remembers prior turns in a session — they govern chat logging, not model memory. Confirmed via direct test: repeated prompts in the same `session_id` with only the latest message sent produced zero recollection of earlier turns ("I don't have access to your name..."). Standard OpenAI-style behavior (client resends full history) is required and is **not** the default assumption a new API user would make. Worth a clear docs callout on `/v1/chat/completions`. `morpheus-doctor --interactive` implements client-side history correctly as a reference. | Med | Open — Doc PR |
+| **F14** | **Chat sessions do not share conversation context by default** | Router config flags `StoreChatContext`/`ForwardChatContext` do **not** mean the router remembers prior turns in a session — they govern chat logging, not model memory. Confirmed via direct test: repeated prompts in the same `session_id` with only the latest message sent produced zero recollection of earlier turns ("I don't have access to your name..."). Standard OpenAI-style behavior (client resends full history) is required and is **not** the default assumption a new API user would make. Worth a clear docs callout on `/v1/chat/completions`. `morctl --interactive` implements client-side history correctly as a reference. | Med | Open — Doc PR |
 | **F15** | **`mor-cli` fails to launch on Windows (cookie path bug)** | `mor-cli.exe --help` (and any subcommand) fails unconditionally with: `can't read cookie file: open <dir>\<dir>\.cookie: The filename, directory name, or volume label syntax is incorrect.` The printed path is the router's base directory duplicated onto itself. **Confirmed independent of**: working directory, `COOKIE_FILE_PATH` env var, `AUTH_USER`/`AUTH_PASSWORD` env vars, and presence of a valid `.cookie` file at the expected location (5 separate test configurations, all producing byte-identical output). The failure occurs during startup/config resolution, before any documented override (`COOKIE_FILE_PATH`, `AUTH_CONFIG_FILE_PATH` per `/reference/api-auth`) is consulted. Tested binary: `win-x64-morpheus-cli-7.3.0.exe`. **`mor-cli` is currently unusable out of the box on Windows — cannot even print help text.** | **High** | Open — bug report (blocking) |
 | **F16** | **Desktop App onboarding completely broken** | Fresh install, no prior state, wallet setup fails unconditionally: "Failed to finish onboarding." Confirmed on multiple machines and multiple versions (v7.3.0 and an earlier tested release). Also reproduces when switching an existing wallet on an already-onboarded install. Blocks every new user at step one. | **Critical** | ✅ Resolved — #811, confirmed working on a clean install as of [27/07/2026] |
 
 ### What works well (do NOT "fix")
 - Wallet **funding** was easy (Base ETH + MOR).
 - **Desktop-app staking** is straightforward *once a wallet is successfully onboarded* — but onboarding itself is currently broken (F16).- The Desktop App's **bundled local model** gives a zero-cost inference demo out of the box.
-- `morpheus-doctor --dev`/`--interactive` — tested end-to-end against two models, graceful failure handling, correct client-side context.
+- `morctl --dev`/`--interactive` — tested end-to-end against two models, graceful failure handling, correct client-side context.
 
 ---
 
-## The manual developer chain (what `morpheus-doctor --dev` automates)
+## The manual developer chain (what `morctl --dev` automates)
 
 Confirmed env: **mainnet (Base, chain 8453)**, model **Kimi K2.5**
 (`model_id 0xbb9e920d94ad3fa2861e1e209d0a969dbe9e1af1cf1ad95c49f76d7b63d32d93`),
@@ -90,8 +90,8 @@ curl -s -u "admin:<ROUTER_API_PASSWORD>" \
   -d '{"model":"kimi-k2.5","messages":[{"role":"user","content":"Hello!"}],"stream":false}'
 ```
 
-**`morpheus-doctor --dev`** (✅ built and tested) health-checks the router, opens the session,
-**captures `sessionID` in memory (kills F4)**, runs inference. **`morpheus-doctor --dev --interactive`**
+**`morctl --dev`** (✅ built and tested) health-checks the router, opens the session,
+**captures `sessionID` in memory (kills F4)**, runs inference. **`morctl --dev --interactive`**
 (✅ built and tested) additionally maintains full conversation history client-side and resends it each
 turn (fix for F14), since the router does not retain it. A scoped `chat`/`open_session` user (F9) as
 an alternative to admin remains a future enhancement, not yet built.
@@ -112,7 +112,7 @@ an alternative to admin remains a future enhancement, not yet built.
 6. ⏳ **New — is `mor-cli` broken on other platforms too, or Windows-only?** Not tested on
    macOS/Linux. Worth a maintainer confirming scope before assuming Windows-specific.
 
-## Canonical config surface (for morpheus-doctor)
+## Canonical config surface (for morctl)
 
 From `/reference/env-proxy-router`:
 - `WEB_ADDRESS` (default `0.0.0.0:8082`) — local API bind

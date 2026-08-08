@@ -62,7 +62,7 @@ kept separate from AUDIT.md's technical findings.
 
 ## Morpheus Doctor — future direction
 
-- Demoed `morpheus-doctor` to David; well received.
+- Demoed `morctl` to David; well received.
 - Discussed evolving it beyond its current scope (session/inference automation +
   preflight) into an actual **diagnosis-and-auto-fix tool** — living up to the
   "Doctor" name more literally: detect a problem, explain it, and where possible,
