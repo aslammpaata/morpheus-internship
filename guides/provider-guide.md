@@ -311,6 +311,14 @@ A real reply confirms the full loop — you're earning.
 
 ✅ Provider setup complete, end to end.
 
+> 🔒 **Note on the test session's stake:** the `session` you opened in this step to test
+> your own model behaves like any consumer session — its stake goes through a ~24h
+> hold/maturation period before it's claimable, requiring a manual
+> `withdrawUserStakes` call to recover (not yet automated by any client). This is
+> separate from your **provider** stake in Step 5, which follows different rules. See
+> the [headless guide's Step 7](./developer-headless-guide.md#step-7-session-lifecycle--what-happens-next)
+> for the full explanation.
+
 ---
 
 ## Real Example: Why a Setup Wasn't Working

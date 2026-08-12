@@ -263,6 +263,14 @@ Requires `PROXY_STORE_CHAT_CONTEXT=true` and `PROXY_FORWARD_CHAT_CONTEXT=true` i
 
 ---
 
+## Cross-guide reference
+
+The stake-lock behavior in Step 7 above applies identically regardless of which client
+opened the session — Desktop App, `morctl`, or raw curl as in this guide. See
+[morctl guide](./morctl-native-guide.md) and
+[Desktop App guide](./desktop-app-beginner-guide.md) for the same warning in those
+contexts.
+
 ## Glossary
 
 - **`.cookie`** — the router's auto-generated Basic Auth credential (`user:pass`).
